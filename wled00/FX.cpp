@@ -1784,7 +1784,68 @@ uint16_t WS2812FX::mode_fire_2012()
   return FRAMETIME;
 }
 
+#include "time/TimeLib.h"
+extern time_t local;
+extern void updateLocalTime(void);
 
+uint16_t WS2812FX::mode_fire_2012_clock()
+{
+  uint32_t it = now >> 5; //div 32
+  
+  if (!SEGENV.allocateData(SEGLEN)) return mode_static(); //allocation failed
+  
+  byte* heat = SEGENV.data;
+
+  if (it != SEGENV.step)
+  {
+    static int last=0;
+    static int start_led = 0;
+    
+    if(millis() - last > 998){
+      last = millis();
+      updateLocalTime();
+      // Start by getting hour mod 12 to have only 12hours
+      // multiply by how many pixels one hour should be
+      start_led = round(( hour(local) %12 ) * (SEGLEN / 12));
+      
+      // add nrof pixels for elapsed minutes
+      start_led += round(minute(local) / (SEGLEN/5));
+    }
+    
+    
+    // Step 1.  Cool down every cell a little
+    for (uint16_t i = 0; i < SEGLEN; i++) {
+      SEGENV.data[i] = qsub8(heat[i],  random8(0, (((20 + SEGMENT.speed /3) * 10) / SEGLEN) + 2));
+    }
+  
+    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+    for (uint16_t k= SEGLEN -1; k > 1; k--) {
+      //heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+      int m  = (k + start_led) % SEGLEN;
+      int m1 = (k + start_led-1) % SEGLEN;
+      int m2 = (k + start_led-2) % SEGLEN;
+      heat[m] = (heat[m1] + heat[m2] + heat[m2] ) / 3;
+    }
+    
+    // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+    if (random8() <= SEGMENT.intensity) {
+      uint8_t y = random8(2);
+      // Map to clock
+      y += start_led;
+      y %= SEGLEN;
+      //uint8_t y = start_led;
+      if (y < SEGLEN) heat[y] = qadd8(heat[y], random8(160,255));
+    }
+    SEGENV.step = it;
+  }
+
+  // Step 4.  Map from heat cells to LED colors
+  for (uint16_t j = 0; j < SEGLEN; j++) {
+    CRGB color = ColorFromPalette(currentPalette, min(heat[j],240), 255, LINEARBLEND);
+    setPixelColor(j, color.red, color.green, color.blue);
+  }
+  return FRAMETIME;
+}
 // ColorWavesWithPalettes by Mark Kriegsman: https://gist.github.com/kriegsman/8281905786e8b2632aeb
 // This function draws color waves with an ever-changing,
 // widely-varying set of parameters, using a color palette.

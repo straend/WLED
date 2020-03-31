@@ -95,7 +95,7 @@
 #define IS_REVERSE      ((SEGMENT.options & REVERSE )     == REVERSE     )
 #define IS_SELECTED     ((SEGMENT.options & SELECTED)     == SELECTED    )
 
-#define MODE_COUNT  102
+#define MODE_COUNT  103
 
 #define FX_MODE_STATIC                   0
 #define FX_MODE_BLINK                    1
@@ -199,6 +199,7 @@
 #define FX_MODE_RIPPLE_RAINBOW          99
 #define FX_MODE_HEARTBEAT              100
 #define FX_MODE_PACIFICA               101
+#define FX_MODE_FIRE_2012_CLOCK        102
 
 class WS2812FX {
   typedef uint16_t (WS2812FX::*mode_ptr)(void);
@@ -389,6 +390,7 @@ class WS2812FX {
       _mode[FX_MODE_RIPPLE_RAINBOW]          = &WS2812FX::mode_ripple_rainbow;
       _mode[FX_MODE_HEARTBEAT]               = &WS2812FX::mode_heartbeat;
       _mode[FX_MODE_PACIFICA]                = &WS2812FX::mode_pacifica;
+      _mode[FX_MODE_FIRE_2012_CLOCK]         = &WS2812FX::mode_fire_2012_clock;
 
       _brightness = DEFAULT_BRIGHTNESS;
       currentPalette = CRGBPalette16(CRGB::Black);
@@ -574,7 +576,8 @@ class WS2812FX {
       mode_percent(void),
       mode_ripple_rainbow(void),
       mode_heartbeat(void),
-      mode_pacifica(void);
+      mode_pacifica(void),
+      mode_fire_2012_clock(void);
       
 
   private:
@@ -660,7 +663,7 @@ const char JSON_mode_names[] PROGMEM = R"=====([
 "Noise 1","Noise 2","Noise 3","Noise 4","Colortwinkles","Lake","Meteor","Meteor Smooth","Railway","Ripple",
 "Twinklefox","Twinklecat","Halloween Eyes","Solid Pattern","Solid Pattern Tri","Spots","Spots Fade","Glitter","Candle","Fireworks Starburst",
 "Fireworks 1D","Bouncing Balls","Sinelon","Sinelon Dual","Sinelon Rainbow","Popcorn","Drip","Plasma","Percent","Ripple Rainbow",
-"Heartbeat","Pacifica"
+"Heartbeat","Pacifica","Fire 2012 Clock"
 ])=====";
 
 
